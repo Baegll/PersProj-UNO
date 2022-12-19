@@ -57,6 +57,10 @@ print(f"AI_Hand: {AI_Hand}\n")
 discard_pile = []
 # get first card, randomly from deck
 discard_pile.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+# if card is a wildcard, add the card back to deck, get new card
+while discard_pile[-1][0] == 'Wild':
+    Shared_Deck.append(discard_pile.pop())
+    discard_pile.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
 print(discard_pile)
 
 #  Gameplay Setup
@@ -119,7 +123,7 @@ while(noWinner):
                 AI_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
             elif CardToPlay[1] == 13:  #card is Wildcard, set color
                 CInput = input()
-                WildCardReplacementIndex = Shared_Deck.index([IColor],any)
+                WildCardReplacementIndex = Shared_Deck.index([CInput],any)
                 WildCardReplacement = Shared_Deck.pop(WildCardReplacementIndex)
                 discard_pile.append(WildCardReplacement)
                 
@@ -130,7 +134,7 @@ while(noWinner):
                 AI_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
                 
                 CInput = input()
-                WildCardReplacementIndex = Shared_Deck.index([IColor],any)
+                WildCardReplacementIndex = Shared_Deck.index([CInput],any)
                 WildCardReplacement = Shared_Deck.pop(WildCardReplacementIndex)
                 discard_pile.append(WildCardReplacement)
                 
@@ -138,7 +142,98 @@ while(noWinner):
             print("No card to play, going to next turn.")
     
     else:   # then it is the AI turn
-        pass
+        print(f"===AI Turn===\nHand: {AI_Hand}\n")
+        hasColor = False    # State
+        hasNumber = False   # State
+        hasWild = False     # State
+        # Check if AI has card that matches topdeck
+            #if no, force draw
+            #if yes, continue
+        for card in AI_Hand:
+            # Check Color
+            if card[0] == discard_pile[-1][0]:
+                hasColor = True
+                break
+            elif card[0] == 'Wild':
+                hasWild = True
+                break
+                
+            # Check Number
+            if card[1] == discard_pile[-1][1]:
+                hasNumber = True
+                break
+        
+        if hasColor == False and hasNumber == False and hasWild == False:
+            # Draw a card from deck
+            AI_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+            if AI_Hand[-1][0] == discard_pile[-1][0]:
+                hasColor = True
+            elif AI_Hand[-1][0] == 'Wild':
+                hasWild = True
+            elif AI_Hand[-1][1] == discard_pile[-1][1]:
+                hasCard = True
+        
+        playedCard = False  # State
+        if hasColor:
+            IColor = discard_pile[-1][0]
+            INumber = any
+            
+            index = AI_Hand.index([IColor, INumber])
+            CardToPlay = AI_Hand.pop(index)
+            discard_pile.append(CardToPlay) #new topdeck
+        
+        elif hasNumber:
+            IColor = any
+            INumber = discard_pile[-1][1]
+            
+            index = AI_Hand.index([IColor, INumber])
+            CardToPlay = AI_Hand.pop(index)
+            discard_pile.append(CardToPlay) #new topdeck
+        
+        elif hasWild:
+            IColor = 'Wild'
+            INumber = any
+            
+            index = AI_Hand.index([IColor, INumber])
+            CardToPlay = AI_Hand.pop(index)
+            discard_pile.append(CardToPlay) #new topdeck
+        
+        if playedCard:
+            # Resolve Effects
+            # did they win
+            if len(AI_Hand) == 0:
+                noWinner = False
+                print("\nThe AI has Won!")
+            
+            elif CardToPlay[1] == 10:  #card is skip
+                if direction == True:
+                    player = player + 1
+                else:
+                    player = player - 1
+            elif CardToPlay[1] == 11:  #card is reverse
+                direction = not direction
+            elif CardToPlay[1] == 12:  #card is +2
+                # get the next players hand
+                Player_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+                Player_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+            elif CardToPlay[1] == 13:  #card is Wildcard, set color
+                IColor = random('Red','Blue','Yellow','Green')
+                WildCardReplacementIndex = Shared_Deck.index([IColor],any)
+                WildCardReplacement = Shared_Deck.pop(WildCardReplacementIndex)
+                discard_pile.append(WildCardReplacement)
+                
+            elif CardToPlay[1] == 14:  #card is +4, set color
+                Player_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+                Player_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+                Player_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+                Player_Hand.append(Shared_Deck.pop(random.randint(0, len(Shared_Deck)-1)))
+                
+                IColor = random('Red','Blue','Yellow','Green')
+                WildCardReplacementIndex = Shared_Deck.index([IColor],any)
+                WildCardReplacement = Shared_Deck.pop(WildCardReplacementIndex)
+                discard_pile.append(WildCardReplacement)
+        else:
+            print("No card to play, going to next turn.")
     
     #next turn/loop
     noWinner = False
